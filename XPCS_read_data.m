@@ -121,6 +121,101 @@ Flag_pixels = 1;
             
         end
             
+        function  [IIstruct] = TTsimulation_read(iT,TCV,specfilenameM,SCNstrM,DOCU0,DOCU1,ImageJ,POINTSUMS)
+               
+              %tamount = tamountv(iT);
+            TC = TCV(iT);
+            DOCUscan = [num2str(TC) 'C ' DOCU1];
+                                    
+            disp(['File index: ' num2str(iT)]);
+            specfilename = specfilenameM(iT,:);
+            SCNstr = SCNstrM(iT,:);
+            
+            filepath = [specfilename SCNstr '/'];
+            
+            load([filepath specfilename SCNstr '_corr_dt.mat']);
+            
+            %{
+            STR = XPCS_read_data.read_paths_prepare_STR(scanflag,imname,p_image,ending);
+            
+            read data and calculate the normalization
+            index_SCN = 1; % if multiple SCNs, write array
+            [II_orig,sdata,timestampX,TITLEstuct] = XPCS_read_data.read_data_MPX3(specfilename,STR,SCNstr,index_SCN,DOCU0,DOCUscan);
+            
+            for jjj = 1:size(II_orig,3)
+               II_transp = squeeze(II_orig(:,:,jjj))';
+               II(:,:,jjj) = II_transp;
+            end
+           
+            [Norm] = XPCS_read_data.calc_Norm(sdata);
+            
+            % read time
+            timestampX_flag = 0;   % timestamp flag from tif is not great, keep use spec
+            lastframes_ini = [];
+            [timeX,timestampX,lastframes, Xsteps,Xamount,SCNXLABEL] = XPCS_read_data.calc_TimeX(sdata,timestampX,timestampX_flag,lastframes_ini,Xstepcol,ImageJ);
+            
+            % correct data: normalization,background and flat field corrections
+            BKG_FF_Flag = 0;
+            imnormnan = [];
+            [IInormb] = XPCS_read_data.from_II_to_IInorm(II,Norm,BKG,BKG_FF_Flag,ImageJ,imnormnan);
+            %{
+Flag_pixels = 1;
+[ii_rows,jj_cols]= XPCS_read_data.find_high_counts_pixels(IInorm,Flag_pixels);
+            %}
+            %}
+            
+            [Norm] = XPCS_read_data.calc_Norm_simulation(III,1e5);
+            
+             % correct data: normalization,background and flat field corrections
+            BKG_FF_Flag = 0;
+            BKG = [];
+            imnormnan = [];
+            [IInormb] = XPCS_read_data.from_II_to_IInorm(III,Norm,BKG,BKG_FF_Flag,ImageJ,imnormnan);
+            
+            
+            % retain useful indexes for time (throw the 2 first ML)
+             idt = damono > dt_minML;
+            
+            
+             TITLEstuct.TITLEstr1 = char(...
+                ['simulation #', SCNstr]);
+            
+            TITLEstuct.TITLEstrshort = char(...
+                ['simulation #', SCNstr]);
+            
+            TITLEstuct.TITLEstr2 = char(...
+                ['simulation #', SCNstr]);
+            
+            % calculate the ML/frame:
+            MLdata = dtdata*gasconc;   % 
+            
+            
+            % store data in a structure
+            IIstruct.IInormb = IInormb;
+            IIstruct.TITLEstuct = TITLEstuct;
+            IIstruct.timeX = damono(idt)./MLdata;
+            IIstruct.timestampX = damono(idt);
+            IIstruct.lastframes = [1:sum(idt)];
+            IIstruct.Xsteps = damono(idt)./MLdata;
+            IIstruct.Xamount = damono(idt)./MLdata;
+            IIstruct.SCNXLABEL =  'spec point # ';
+            IIstruct.Nr = size(III,1); % detector size (rows), 195 Pixirad (nu)
+            IIstruct.Nc = size(III,2); % detector size (rows), 487 Pixirad (del)
+            IIstruct.Nt = size(III,3); % detector size (rows), 487 Pixirad (del)
+            IIstruct.ROISfull = [1 IIstruct.Nc 1 IIstruct.Nr] - ImageJ;
+            IIstruct.SPECpts = [1:IIstruct.Nt] - ImageJ;
+            IIstruct.YROWpts = [1:IIstruct.Nr] - ImageJ;
+            IIstruct.XCOLpts = [1:IIstruct.Nc] - ImageJ;
+            IIstruct.DOCUInt = '[No FF]';
+            
+            if isempty(POINTSUMS)
+                IIstruct.POINTSUMS=[1 IIstruct.Nt] - ImageJ;
+            end
+            
+            
+            
+        end
+        
         
         function STR = read_paths_prepare_STR(scanflag,imname,p_image,ending)
             % this function prepares the STR structure which generates the
@@ -194,6 +289,19 @@ Flag_pixels = 1;
                 Norm	= hex100mA .* secperpoint ./ hubmon;   % sometimes extra columns appear with hexmon                
             end
         end 
+        
+        function [Norm] = calc_Norm_simulation(III,cntrate)
+            % This function reads information about sdata and calculates
+            % the normalizing factor
+            
+            
+            max_III = max(max(max(III)));
+            
+            Norm = (cntrate/max_III)*ones(size(III,3),1);
+           
+            
+        end 
+        
         
         function [timeX,timestampX,lastframes, Xsteps,Xamount,SCNXLABEL] = calc_TimeX(sdata,timestampX,timestampX_flag,lastframes,Xstepcol,ImageJ)
             % Note the timestamp for the medipix is only to 1 second, not to milliseconds

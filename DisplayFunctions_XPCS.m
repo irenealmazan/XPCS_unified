@@ -341,7 +341,7 @@ classdef DisplayFunctions_XPCS
                 HS_sumimag_struct = pcolor(timeX,nd,Imagetoplot);
                 makeyline(timeX(lastframes));
                 
-                Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1(3,:),[Singlescan_struct.IIstruct.DOCUInt, ' summed over ' Title_spec ' in ROI #' int2str(ii)]);
+                Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1(size(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,1),:),[Singlescan_struct.IIstruct.DOCUInt, ' summed over ' Title_spec ' in ROI #' int2str(ii)]);
                 XLabelstr = 'Time (s)';
                 YLabelstr = YROW;
                 Namestr = [Name_spec Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2]
@@ -401,7 +401,7 @@ classdef DisplayFunctions_XPCS
             legend(LEGEND);
             
             
-            Titlestr = char(Read_Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1(3,:),['summed over ' Title_spec ' in all ROI and scan pts']);
+            Titlestr = char(Read_Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1(size(Read_Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,1),:),['summed over ' Title_spec ' in all ROI and scan pts']);
             XLabelstr = YROW;
             YLabelstr = 'Integrated int.';
             Namestr = [Name_spec Read_Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];
@@ -1227,11 +1227,11 @@ classdef DisplayFunctions_XPCS
                 case 'row'
                     qtolook = [ 1:CCN2S_struct.Ncq_Nrq(2)];
                     %Namefig = ['Fit results of ' flag_row_or_col ' '  num2str(indexq) ' '  CCN2S_struct.TITLEstruct.TITLEstr2 ];
-                     Namefig = ['Fit at constant del = ' num2str(CCN2S_struct.scancq(indexq).scanrq(1).del,'%10.3e') ' (1/Angstroms)  '  CCN2S_struct.TITLEstruct.TITLEstr1(3,:)];
+                     Namefig = ['Fit at constant del = ' num2str(CCN2S_struct.scancq(indexq).scanrq(1).del,'%10.3e') ' (1/Angstroms)  '  CCN2S_struct.TITLEstruct.TITLEstr1(size(CCN2S_struct.TITLEstruct.TITLEstr1,1),:)];
                 case 'col'
                     qtolook = [ 1:CCN2S_struct.Ncq_Nrq(1)];
                    % Namefig = ['Fit results of ' flag_row_or_col ' '  num2str(indexq) ' '  CCN2S_struct.TITLEstruct.TITLEstr2 ];
-                    Namefig = ['Fit at constant nu = ' num2str(CCN2S_struct.scancq(1).scanrq(indexq).nu,'%10.3e') ' (1/Angstroms)  '   CCN2S_struct.TITLEstruct.TITLEstr1(3,:) ];
+                    Namefig = ['Fit at constant nu = ' num2str(CCN2S_struct.scancq(1).scanrq(indexq).nu,'%10.3e') ' (1/Angstroms)  '   CCN2S_struct.TITLEstruct.TITLEstr1(size(CCN2S_struct.TITLEstruct.TITLEstr1,1),:) ];
 
                 otherwise
                     disp('please select rows or cols')
@@ -1760,9 +1760,9 @@ classdef DisplayFunctions_XPCS
                 switch flag_row_or_col
                     
                     case 'row'
-                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(3,22:30) Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr2(end-3:end) ['col = ' num2str(indexq) 'negative']]};
+                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(size(Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1,1),:)  ['col = ' num2str(indexq) 'negative']]};
                     case 'col'
-                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(3,22:30) Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr2(end-3:end) ['row = ' num2str(indexq) 'negative']]};
+                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(size(Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1,1),:)  ['row = ' num2str(indexq) 'negative']]};
                 end
             
                 
@@ -1791,9 +1791,9 @@ classdef DisplayFunctions_XPCS
                 switch flag_row_or_col
                     
                     case 'row'
-                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(3,22:30) Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr2(end-3:end) ['col = ' num2str(indexq) 'positive']]};
+                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(size(Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1,1),:)  ['col = ' num2str(indexq) 'positive']]};
                     case 'col'
-                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(3,22:30) Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr2(end-3:end) ['row = ' num2str(indexq) 'positive']]};
+                        Titlestr = {[Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1(size(Allscans(iT).CCN2S_struct.TITLEstruct.TITLEstr1,1),:)  ['row = ' num2str(indexq) 'positive']]};
                 end
             
                 
