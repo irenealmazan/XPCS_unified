@@ -143,7 +143,7 @@ classdef DisplayFunctions_XPCS
         end
         
          
-        function [HSstruct] = display_IInormb(IIstruct,IInormb,Namefig,QvalFlag,fig_num,ImageJ,SINGLE,XCOLLabel,YROWLabel,AXISdet,INFOstr,D_ds,kvector,pixel_size,th_Bragg)
+        function [HSstruct] = display_IInormb(IIstruct,IInormb,Namefig,QvalFlag,fig_num,ImageJ,SINGLE,XCOLLabel,YROWLabel,AXISdet,INFOstr,sim_flag,CLIM)
            
             
             Nr = size(IInormb,1); 
@@ -160,7 +160,7 @@ classdef DisplayFunctions_XPCS
             else
                 xccen = 1 + (Nc - 1)/2;
                 yrcen = 1 + (Nr - 1)/2;
-                Qvector_struct = XPCS_analysis.calculate_qval(xccen - ImageJ,yrcen - ImageJ,[1:Nc] - ImageJ,[1:Nr] - ImageJ,D_ds,kvector,pixel_size,th_Bragg);
+                Qvector_struct = XPCS_analysis.calculate_qval(xccen - ImageJ,yrcen - ImageJ,[1:Nc] - ImageJ,[1:Nr] - ImageJ,sim_flag);
                 XCOLpts = Qvector_struct.del;
                 YROWpts = Qvector_struct.nu;
                 XLabelstr = '\Delta q\_del (1/Å)';
@@ -188,7 +188,7 @@ classdef DisplayFunctions_XPCS
             Titlestr = char(IIstruct.TITLEstuct.TITLEstr1,INFOstr);
             Namestr = [Namefig int2str(SINGLE) IIstruct.TITLEstuct.TITLEstr2];           
             Shading_mode = 'interp';
-            Colorvector = [0 4.5];
+            Colorvector = CLIM;
             Colorbarflag = 1;
             flagPrettyPlot = 0;
             
@@ -1648,7 +1648,7 @@ classdef DisplayFunctions_XPCS
         end
         
        
-        function [pout_struct,fig_handle] = display_fit_result_log(Allscans,pp_index,indexq,flag_row_or_col,figh)
+       function [pout_struct,fig_handle] = display_fit_result_log(Allscans,pp_index,indexq,flag_row_or_col,figh)
             
             fig_handle = figure(figh);
             clf;
@@ -1813,7 +1813,7 @@ classdef DisplayFunctions_XPCS
         end
             
        
-        function [pout_struct] = append_q_law(figh,pout_struct,SplitQ_CTR,t_osc,color)
+       function [pout_struct] = append_q_law(figh,pout_struct,SplitQ_CTR,t_osc,color)
             
             slope = SplitQ_CTR*t_osc/(2*pi); % see formula 8 in the overleaf document about step_velocity_XPCS
             
@@ -1843,7 +1843,7 @@ classdef DisplayFunctions_XPCS
         
         % all data sets:
         
-        function [HSstruct] = display_IInormb_all(Allscans,Namefig,QvalFlag,LOGFLAG,fig_ini)
+       function [HSstruct] = display_IInormb_all(Allscans,Namefig,QvalFlag,LOGFLAG,fig_ini)
             
             % Read predefined parameters:
             [ImageJ,~,SINGLE,~,~,~,...
@@ -1925,7 +1925,7 @@ classdef DisplayFunctions_XPCS
            
         end
         
-        function vel_struct = display_vel_vs_temp(TCV,pout_struct,Namefig,island_size,fignum)
+       function vel_struct = display_vel_vs_temp(TCV,pout_struct,Namefig,island_size,fignum)
             
             
             for iT = 1:numel(pout_struct)

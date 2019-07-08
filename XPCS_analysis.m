@@ -8,12 +8,19 @@ classdef XPCS_analysis
     
     methods(Static)
   
-         function Qval_struct = calculate_qval(XCEN_II,YCEN_II,Ncq_vect,Nrq_vect,D_ds,kvector,pixel_size,th_Bragg)
+        function Qval_struct = calculate_qval(XCEN_II,YCEN_II,Ncq_vect,Nrq_vect,sim_flag)
             
-
-            Qval_struct.nu = (kvector*(Nrq_vect-YCEN_II )*pixel_size/D_ds)*1e-10; % nu direction, in 1/Angstroms            
-            Qval_struct.del = (kvector*(Ncq_vect-XCEN_II)*pixel_size/D_ds)*sind(th_Bragg)*1e-10; % del direction  in 1/Angstroms
-           
+            if sim_flag
+                Qval_struct.nu = (Nrq_vect-YCEN_II ); %nu direction, in 1/Angstroms
+                Qval_struct.del = (Ncq_vect-XCEN_II);% del direction  in 1/Angstroms
+                
+            else
+                [D_ds,kvector,lambda,pixel_size,th_Bragg,SplitQ_CTR,t_osc] = XPCS_initialize_parameters.TT_experiment();
+                Qval_struct.nu = (kvector*(Nrq_vect-YCEN_II )*pixel_size/D_ds)*1e-10; % nu direction, in 1/Angstroms
+                Qval_struct.del = (kvector*(Ncq_vect-XCEN_II)*pixel_size/D_ds)*sind(th_Bragg)*1e-10; % del direction  in 1/Angstroms
+                
+            end
+            
         end
         
         
@@ -98,7 +105,7 @@ classdef XPCS_analysis
             IIbin_struct.TITLEstuct = Read_Singlescan_struct.IIstruct.TITLEstuct;
         end
         
-        function [IInormbb_ref_avg] = calc_IInormb_avg_inpixels(IIbin_struct,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,D_ds,kvector,pixel_size,th_Bragg,mask)
+        function [IInormbb_ref_avg] = calc_IInormb_avg_inpixels(IIbin_struct,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,sim_flag,mask)
            % This function fits the temperal dependence of each pixel in
            % IInormb to a polynomial function whose degree is specified by
            % N_degree
@@ -153,7 +160,7 @@ classdef XPCS_analysis
                     offttr = (irq - wrq - 1)*(2*hwttr+1)+ offsetrc;
                     ittr = round(ittrcen + offttr + [-hwttr:hwttr]);
                     
-                    Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc,ittrcen + offttr,D_ds,kvector,pixel_size,th_Bragg);
+                    Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc,ittrcen + offttr,sim_flag);
                     
                     IInormbb_ref_avg.scancq(icq).scanrq(irq).IInormb_avg = squeeze(mean(mean(IInormbb(ittr,ittc,:),1),2));
                     
@@ -210,7 +217,7 @@ classdef XPCS_analysis
             CCN2_struct.TITLEstuct = IIbin_struct.TITLEstuct;
         end
         
-        function [CCN2avg_struct,qvector_struct] = from_CCN2V_to_CCN2avg(Single_scan_struct,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,D_ds,kvector,pixel_size,th_Bragg)
+        function [CCN2avg_struct,qvector_struct] = from_CCN2V_to_CCN2avg(Single_scan_struct,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,sim_flag)
             
             hwttr = hwttr_allT(iT);
             hwttc = hwttc_allT(iT);
@@ -240,7 +247,7 @@ classdef XPCS_analysis
                     offttr = (irq - wrq - 1)*(2*hwttr+1)+ offsetrc;
                     ittr = round(ittrcen + offttr + [-hwttr:hwttr]);
                     
-                    Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc,ittrcen + offttr,D_ds,kvector,pixel_size,th_Bragg);
+                    Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc,ittrcen + offttr,sim_flag);
 
                    
                     CCN2avg_struct.scancq(icq).scanrq(irq).CCN2avg = squeeze(mean(mean(CCN2V(ittr,ittc,:,:),1),2));

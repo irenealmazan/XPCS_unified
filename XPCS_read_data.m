@@ -135,35 +135,7 @@ Flag_pixels = 1;
             
             load([filepath specfilename SCNstr '_corr_dt.mat']);
             
-            %{
-            STR = XPCS_read_data.read_paths_prepare_STR(scanflag,imname,p_image,ending);
-            
-            read data and calculate the normalization
-            index_SCN = 1; % if multiple SCNs, write array
-            [II_orig,sdata,timestampX,TITLEstuct] = XPCS_read_data.read_data_MPX3(specfilename,STR,SCNstr,index_SCN,DOCU0,DOCUscan);
-            
-            for jjj = 1:size(II_orig,3)
-               II_transp = squeeze(II_orig(:,:,jjj))';
-               II(:,:,jjj) = II_transp;
-            end
-           
-            [Norm] = XPCS_read_data.calc_Norm(sdata);
-            
-            % read time
-            timestampX_flag = 0;   % timestamp flag from tif is not great, keep use spec
-            lastframes_ini = [];
-            [timeX,timestampX,lastframes, Xsteps,Xamount,SCNXLABEL] = XPCS_read_data.calc_TimeX(sdata,timestampX,timestampX_flag,lastframes_ini,Xstepcol,ImageJ);
-            
-            % correct data: normalization,background and flat field corrections
-            BKG_FF_Flag = 0;
-            imnormnan = [];
-            [IInormb] = XPCS_read_data.from_II_to_IInorm(II,Norm,BKG,BKG_FF_Flag,ImageJ,imnormnan);
-            %{
-Flag_pixels = 1;
-[ii_rows,jj_cols]= XPCS_read_data.find_high_counts_pixels(IInorm,Flag_pixels);
-            %}
-            %}
-            
+          
             [Norm] = XPCS_read_data.calc_Norm_simulation(III,1e5);
             
              % correct data: normalization,background and flat field corrections
@@ -193,11 +165,11 @@ Flag_pixels = 1;
             % store data in a structure
             IIstruct.IInormb = IInormb;
             IIstruct.TITLEstuct = TITLEstuct;
-            IIstruct.timeX = damono(idt)./MLdata;
-            IIstruct.timestampX = damono(idt);
-            IIstruct.lastframes = [1:sum(idt)];
-            IIstruct.Xsteps = damono(idt)./MLdata;
-            IIstruct.Xamount = damono(idt)./MLdata;
+            IIstruct.timeX = dtdata*[1:sum(idt)];%damono(idt);%./MLdata;
+            IIstruct.timestampX =  dtdata*[1:sum(idt)];%damono(idt);
+            IIstruct.lastframes = [1 sum(idt)- ImageJ];
+            IIstruct.Xsteps =  [1:sum(idt)];%damono(idt);%./MLdata;
+            IIstruct.Xamount =  dtdata*[1:sum(idt)];%damono(idt);%./MLdata;
             IIstruct.SCNXLABEL =  'spec point # ';
             IIstruct.Nr = size(III,1); % detector size (rows), 195 Pixirad (nu)
             IIstruct.Nc = size(III,2); % detector size (rows), 487 Pixirad (del)
@@ -207,6 +179,7 @@ Flag_pixels = 1;
             IIstruct.YROWpts = [1:IIstruct.Nr] - ImageJ;
             IIstruct.XCOLpts = [1:IIstruct.Nc] - ImageJ;
             IIstruct.DOCUInt = '[No FF]';
+            IIstruct.MLdata = MLdata;
             
             if isempty(POINTSUMS)
                 IIstruct.POINTSUMS=[1 IIstruct.Nt] - ImageJ;
