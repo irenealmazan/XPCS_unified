@@ -9,43 +9,9 @@ classdef DisplayFunctions_XPCS
         
         % single data sets
         
-        function [] = display_singlebox_CCN2avg(ittccen,ittrcen,ittr,ittc,QvalFlag,ImageJ,fig_num)
-            
-             figure(fig_num);
-             hold on;
-            
-            for icq = 1:numel(ittc)
-               
-                for irq = 1:numel(ittr)                 
-                    
-                    if QvalFlag
-                        Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,[ittr(1) ittr(3)+1]-ImageJ,[ittc(1) ittc(3)+1]-ImageJ);
-                        
-                        Xl = Qval_struct.nu(1);
-                        Xh = Qval_struct.nu(2);
-                        Yl = Qval_struct.del(1);
-                        Yh = Qval_struct.del(2);
-                    else
-                        Yl = ittc(1)-ImageJ;
-                        Yh = ittc(3)-ImageJ+1;
-                        Xl = ittr(1)-ImageJ;
-                        Xh = ittr(3)-ImageJ+1;
-                    end
-                    
-                    
-                   HL = line(([Yl Yl Yh Yh Yl]'),([Xl Xh Xh Xl Xl]'),'LineWidth',3,'Color','k');
-%                     scatter(([Yl]'),([Xl ]'),3.0,'k');
-%                     scatter(([Yl]'),([Xh ]'),3.0,'g');
-%                     scatter(([Yh]'),([Xh ]'),3.0,'m');
-%                     scatter(([Yh]'),([Xl ]'),3.0,'r');
-                end
-                
-            end
-            
-        end
+       
         
-        
-         function [] = display_grid_CCN2avg(ittccen,ittrcen,Ncq,Nrq,QvalFlag,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,fig_num,ImageJ,D_ds,kvector,pixel_size,th_Bragg)
+         function [] = display_grid_CCN2avg(ittccen,ittrcen,Ncq,Nrq,QvalFlag,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,fig_num,ImageJ,sim_flag)
             
             % hwttr and hwttc are the half width of the box for rows and
             % columns respectively, wrw and wcq are the half number of
@@ -71,12 +37,12 @@ classdef DisplayFunctions_XPCS
                     offttr = (irq - wrq-1)*(2*hwttr+1);
                     
                     if QvalFlag
-                        Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc + [-hwttc hwttc+1]+offsetcc-0.5,ittrcen + offttr + [-hwttr hwttr+1]+offsetrc - 0.5,D_ds,kvector,pixel_size,th_Bragg);
+                        Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc + [-hwttc hwttc+1]+offsetcc-0.5,ittrcen + offttr + [-hwttr hwttr+1]+offsetrc - 0.5,sim_flag);
                         
-                        Yl = Qval_struct.nu(1);
-                        Yh = Qval_struct.nu(2);
-                        Xl = Qval_struct.del(1);
-                        Xh = Qval_struct.del(2);
+                        Yl = Qval_struct.del(1);
+                        Yh = Qval_struct.del(2);
+                        Xl = Qval_struct.nu(1);
+                        Xh = Qval_struct.nu(2);
                     else
                         Xl = ittccen + offttc +offsetcc - hwttc - ImageJ-0.5;
                         Xh = ittccen + offttc +offsetcc + hwttc+1- ImageJ-0.5;
@@ -85,7 +51,7 @@ classdef DisplayFunctions_XPCS
                     end
                     
                     
-                    HL = line(([Xl Xh Xh Xl Xl]'),([Yl Yl Yh Yh Yl]'),'LineWidth',3,'Color','k');
+                    HL = line(([Xl Xh Xh Xl Xl]'),([Yl Yl Yh Yh Yl]'),'LineWidth',.5,'Color','k');
                     
                 end
                 
@@ -93,7 +59,7 @@ classdef DisplayFunctions_XPCS
             
          end
        
-         function [] = display_mask_CCN2avg(ittccen,ittrcen,Ncq,Nrq,QvalFlag,iT,mask,fig_num,ImageJ,D_ds,kvector,pixel_size,th_Bragg)
+         function [] = display_mask_CCN2avg(ittccen,ittrcen,Ncq,Nrq,QvalFlag,iT,mask,fig_num,ImageJ,sim_flag)
             
             % hwttr and hwttc are the half width of the box for rows and
             % columns respectively, wrw and wcq are the half number of
@@ -120,7 +86,7 @@ classdef DisplayFunctions_XPCS
                     offttr = (irq - wrq-1)*(2*hwttr+1);
                     
                     if QvalFlag
-                        Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc + [-hwttc hwttc+1]+offsetcc-0.5,ittrcen + offttr + [-hwttr hwttr+1]+offsetrc - 0.5,D_ds,kvector,pixel_size,th_Bragg);
+                        Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc + [-hwttc hwttc+1]+offsetcc-0.5,ittrcen + offttr + [-hwttr hwttr+1]+offsetrc - 0.5,sim_flag);
                         
                         Yl = Qval_struct.nu(1);
                         Yh = Qval_struct.nu(2);
@@ -143,11 +109,11 @@ classdef DisplayFunctions_XPCS
         end
         
         
-        function display_IInormbbref(IIbin_struct,boxcenterrc_struct,fig_ini,AXISdet,D_ds,kvector,pixel_size,th_Bragg)
+        function display_IInormbbref(IIbin_struct,boxcenterrc_struct,fig_ini,AXISdet,sim_flag)
             
            
-            IInormbb = IIbin_struct.IInormbb;
-            Xamountb = IIbin_struct.Xamountb;
+            IInormbb = IIbin_struct.IInormbb;%IIbin_struct.IInormbbc;
+            timeXb = IIbin_struct.timeXb;
             IInormbb_ref = IIbin_struct.IInormbb_ref;
             
             if isfield(IIbin_struct,'N_degree')
@@ -177,12 +143,12 @@ classdef DisplayFunctions_XPCS
                     
                     subh = subplot(sqrt(NumbSubplots),sqrt(NumbSubplots),counter_pixel-NumbSubplots*(counter_fig-1)); 
                     hold on;
-                    plot(Xamountb',squeeze(IInormbb(irs,ics,:)),'ob');
-                    plot(Xamountb',squeeze(IInormbb_ref(irs,ics,:) ),'k','LineWidth',3.0)
-                    plot(Xamountb',mean(IInormbb(irs,ics,:))*ones(numel(Xamountb),1),'r','LineWidth',3.0)
+                    plot(timeXb',squeeze(IInormbb(irs,ics,:)),'ob');
+                    plot(timeXb',squeeze(IInormbb_ref(irs,ics,:) ),'k','LineWidth',3.0)
+                    plot(timeXb',mean(IInormbb(irs,ics,:))*ones(numel(timeXb),1),'r','LineWidth',3.0)
             
                     % calculate corresponding qvalues            
-                    Qval_struct = XPCS_analysis.calculate_qval(xccen,yrcen,ics,irs,D_ds,kvector,pixel_size,th_Bragg);
+                    Qval_struct = XPCS_analysis.calculate_qval(xccen,yrcen,ics,irs,sim_flag);
 
                     legend('IInormbb(ics,irs,:)',['Fit IInormbb to poly N = ' num2str(Ndeg)],'mean(IInormbb,3)');
                     
@@ -191,7 +157,7 @@ classdef DisplayFunctions_XPCS
                     if ~isempty(AXISdet)
                         Axislim_vect = AXISdet;
                     else
-                        Axislim_vect = [min(Xamountb) max(Xamountb) min(squeeze(IInormbb(irs,ics,:))) max(squeeze(IInormbb(irs,ics,:)))];
+                        Axislim_vect = [min(timeXb) max(timeXb) min(squeeze(IInormbb(irs,ics,:))) max(squeeze(IInormbb(irs,ics,:)))];
                     end
             
                     
@@ -548,12 +514,12 @@ classdef DisplayFunctions_XPCS
                     
                     subh = subplot(sqrt(NumbSubplots),sqrt(NumbSubplots),iq-NumbSubplots*(counter_fig-1));
                     
-                    plot(time_1D(plotrange),CCNdtV(plotrange));
+                    plot(time_1D(plotrange),CCNdtV(plotrange),'ob','MarkerSize',5.0);
                     
                     if  PLOTFITFLAG
                         
                         hold on;
-                        plot(xfit,fitfunc,'r');
+                        plot(xfit,fitfunc,'r','LineWidth',3.0);
                         param_str = [];
                         for pp = 1:numel(plegend) param_str = [param_str ' ' plegend(pp).ptitle]; end
                         celltitle = {'nu = ' num2str(nu,'%10.3e') ' (1/A) '  ' del = ' num2str(del,'%10.3e') ' in 1/A'  param_str  ' = ' num2str(pout','%10.3e')};
@@ -598,7 +564,7 @@ classdef DisplayFunctions_XPCS
             IIbin_struct = Singlescans.IIbin_struct;
             
             IInormbb = IIbin_struct.IInormbb;
-            Xamountb = IIbin_struct.Xamountb;
+            timeXb = IIbin_struct.timeXb;
             IInormbb_ref = IIbin_struct.IInormbb_ref;
             
               
@@ -689,9 +655,9 @@ classdef DisplayFunctions_XPCS
                     
                     subh1 = subplot(1,3,1);
                     hold on;
-                    plot(Xamountb',squeeze(IInormbb(irs,ics,:)),'ob');
-                    plot(Xamountb',squeeze(IInormbb_ref(irs,ics,:) ),'k','LineWidth',3.0)
-                    plot(Xamountb',mean(IInormbb(irs,ics,:))*ones(numel(Xamountb),1),'r','LineWidth',3.0)
+                    plot(timeXb',squeeze(IInormbb(irs,ics,1:length(timeXb))),'ob');
+                    plot(timeXb',squeeze(IInormbb_ref(irs,ics,1:length(timeXb)) ),'k','LineWidth',3.0)
+                    plot(timeXb',mean(IInormbb(irs,ics,1:length(timeXb)))*ones(numel(timeXb),1),'r','LineWidth',3.0)
             
                     %legend('IInormbb(ics,irs,:)',['Fit IInormbb to poly N = ' num2str(Ndeg)],'mean(IInormbb,3)');
                     
@@ -699,7 +665,7 @@ classdef DisplayFunctions_XPCS
                     if ~isempty(AXISdet)
                         Axislim_vect = AXISdet;
                     else
-                        Axislim_vect = [min(Xamountb) max(Xamountb) min(squeeze(IInormbb(irs,ics,:))) max(squeeze(IInormbb(irs,ics,:)))];
+                        Axislim_vect = [min(timeXb) max(timeXb) min(squeeze(IInormbb(irs,ics,:))) max(squeeze(IInormbb(irs,ics,:)))];
                     end
             
                     
@@ -789,7 +755,7 @@ classdef DisplayFunctions_XPCS
         end
         
         
-        % all data sets:
+        % all data sets and other functions
         
        function [HSstruct] = display_IInormb_all(Allscans,Namefig,QvalFlag,LOGFLAG,fig_ini)
             
@@ -969,9 +935,46 @@ classdef DisplayFunctions_XPCS
             DisplayFunctions_XPCS.display_style( subh2 ,'subplot',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,flagPrettyPlot,Colorvector,Colorbarflag,Axisimagestr )
             
 
-         end
-              
-        
+       end
+       
+       function [] = display_singlebox_CCN2avg(ittccen,ittrcen,ittr,ittc,QvalFlag,ImageJ,fig_num)
+           
+           figure(fig_num);
+           hold on;
+           
+           for icq = 1:numel(ittc)
+               
+               for irq = 1:numel(ittr)
+                   
+                   if QvalFlag
+                       Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,[ittr(1) ittr(3)+1]-ImageJ,[ittc(1) ittc(3)+1]-ImageJ);
+                       
+                       Xl = Qval_struct.nu(1);
+                       Xh = Qval_struct.nu(2);
+                       Yl = Qval_struct.del(1);
+                       Yh = Qval_struct.del(2);
+                   else
+                       Yl = ittc(1)-ImageJ;
+                       Yh = ittc(3)-ImageJ+1;
+                       Xl = ittr(1)-ImageJ;
+                       Xh = ittr(3)-ImageJ+1;
+                   end
+                   
+                   
+                   HL = line(([Yl Yl Yh Yh Yl]'),([Xl Xh Xh Xl Xl]'),'LineWidth',3,'Color','k');
+                   %                     scatter(([Yl]'),([Xl ]'),3.0,'k');
+                   %                     scatter(([Yl]'),([Xh ]'),3.0,'g');
+                   %                     scatter(([Yh]'),([Xh ]'),3.0,'m');
+                   %                     scatter(([Yh]'),([Xl ]'),3.0,'r');
+               end
+               
+           end
+           
+       end
+       
+         
+       
+       
         function display_style(figh,flag,Titlestr,Namestr,Xlabelstr,Ylabelstr,shadingstr,Axislim_vect,flagPrettyPlot,COLORVECTOR,Colorbarflag,axisimagestr)
             
             [POSITION,PAPERPOSITION,FONTSIZE,CMAX,CLIM,~,~,...

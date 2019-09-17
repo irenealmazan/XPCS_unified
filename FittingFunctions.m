@@ -7,6 +7,57 @@ classdef FittingFunctions
     
     methods(Static)
         
+               
+     function IInormbb_ref = fit_IInormb_intime(IIbin_struct, N_degree)
+           % This function fits the temporal dependence of each pixel in
+           % IInormb to a polynomial function whose degree is specified by
+           % N_degree
+           
+            IInormbb = IIbin_struct.II;
+            timeX = IIbin_struct.timeX;
+            
+            Nrs = size(IInormbb,1);
+            Ncs = size(IInormbb,2);
+            Ntb = size(IInormbb,3);
+            
+            IInormbb_ref = zeros(Nrs,Ncs,Ntb);
+            
+            for irs = 1:Nrs
+                for ics =1:Ncs
+                   [p] = polyfit(timeX',squeeze(IInormbb(irs,ics,:)),N_degree);
+                   [IInormbb_ref(irs,ics,:) ]= polyval(p,timeX);
+                end
+            end
+            
+           
+     end
+     
+     function IInormbb_ref_avg = fit_IInormb_avg_intime(IInormbb_ref_avg, N_degree)
+           % This function fits the temperal dependence of each pixel in
+           % IInormb to a polynomial function whose degree is specified by
+           % N_degree
+           
+            %IInormbb = IInormbb_ref_avg.IInormbb;
+            timeXb = IInormbb_ref_avg.scancq(1).scanrq(1).timex;
+            
+            Nrs = numel(IInormbb_ref_avg.scancq(1).scanrq);
+            Ncs = numel(IInormbb_ref_avg.scancq);
+            Ntb = numel(timeXb);
+            
+            IInormbb_avg_fit = zeros(Nrs,Ncs,Ntb);
+            
+            for irs = 1:Nrs
+                for ics =1:Ncs
+                   [p] = polyfit(timeXb',IInormbb_ref_avg.scancq(ics).scanrq(irs).IInormb_avg,N_degree);
+                   [IInormbb_avg_fit(irs,ics,:) ]= polyval(p,timeXb);
+                end
+            end
+            
+            IInormbb_ref_avg.IInormbb_avg_fit= IInormbb_avg_fit;
+           
+       end 
+     
+        
        function [fitresult] = fit_2time_corr(CCfunc,fitfunc_paramstr,param_legend,fitfunc_str,fit_range,p_lower,p_upper,p_start)
             % this function fits the time correlation function vs the time
             % and extratcs the time constant. It uses the MATLAB routine
@@ -73,7 +124,7 @@ classdef FittingFunctions
           
             
             for jj=1:numel(CCfunc)
-                
+
                 [ycalc,pout,plegend,kvg,iter,corp,covp,covr,stdresid,Z,r2]=leasqr(CCfunc(jj).time_1D(fit_range)',CCfunc(jj).CCNdtV(fit_range),opts_struct.pin,fitfunc_str,opts_struct.stol,opts_struct.niter,sqrt(opts_struct.w),opts_struct.dp);                
 
                 fitresult(jj).fitfunc = ycalc;
@@ -175,55 +226,22 @@ classdef FittingFunctions
            
            
      end
+   
+     function [y,legendstruct] = invsquarelaw_tau(x,p)
+           % function TTM_fn(x,p)
+           %   for fit of CCNdtV
+           %   p(1) = C constant (positive)
+           %   p(2) = A_avg
+           %   p(3) = tau_avg
           
-     function IInormbb_ref = fit_IInormb_intime(IIbin_struct, N_degree)
-           % This function fits the temperal dependence of each pixel in
-           % IInormb to a polynomial function whose degree is specified by
-           % N_degree
            
-            IInormbb = IIbin_struct.IInormbb;
-            Xamountb = IIbin_struct.Xamountb;
-            
-            Nrs = size(IInormbb,1);
-            Ncs = size(IInormbb,2);
-            Ntb = size(IInormbb,3);
-            
-            IInormbb_ref = zeros(Nrs,Ncs,Ntb);
-            
-            for irs = 1:Nrs
-                for ics =1:Ncs
-                   [p] = polyfit(Xamountb',squeeze(IInormbb(irs,ics,:)),N_degree);
-                   [IInormbb_ref(irs,ics,:) ]= polyval(p,Xamountb);
-                end
-            end
-            
+           y = p(1)./x.^2;
+           legendstruct(1).ptitle = 'Offset';
+           
+           
            
      end
-     
-     function IInormbb_ref_avg = fit_IInormb_avg_intime(IInormbb_ref_avg, N_degree)
-           % This function fits the temperal dependence of each pixel in
-           % IInormb to a polynomial function whose degree is specified by
-           % N_degree
-           
-            %IInormbb = IInormbb_ref_avg.IInormbb;
-            Xamountb = IInormbb_ref_avg.scancq(1).scanrq(1).timex;
-            
-            Nrs = numel(IInormbb_ref_avg.scancq(1).scanrq);
-            Ncs = numel(IInormbb_ref_avg.scancq);
-            Ntb = numel(Xamountb);
-            
-            IInormbb_avg_fit = zeros(Nrs,Ncs,Ntb);
-            
-            for irs = 1:Nrs
-                for ics =1:Ncs
-                   [p] = polyfit(Xamountb',IInormbb_ref_avg.scancq(ics).scanrq(irs).IInormb_avg,N_degree);
-                   [IInormbb_avg_fit(irs,ics,:) ]= polyval(p,Xamountb);
-                end
-            end
-            
-            IInormbb_ref_avg.IInormbb_avg_fit= IInormbb_avg_fit;
-           
-       end 
+   
      
     end
 end

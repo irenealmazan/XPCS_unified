@@ -9,18 +9,18 @@ classdef DisplayTTM_plot
         
         % single data sets
         
-       
-        function [HSstruct] = display_IInormb(IIstruct,IInormb,Namefig,QvalFlag,fig_num,ImageJ,SINGLE,XCOLLabel,YROWLabel,AXISdet,INFOstr,sim_flag,CLIM)
-           
-            
-            Nr = size(IInormb,1); 
-            Nc = size(IInormb,2);
+        
+        function [HSstruct] = display_II(IIstruct,II,Namefig,QvalFlag,fig_num,ImageJ,SINGLE,XCOLLabel,YROWLabel,AXISdet,INFOstr,sim_flag,CLIM)
             
             
-            % Read variables to plot 
+            Nr = size(II,1);
+            Nc = size(II,2);
+            
+            
+            % Read variables to plot
             if QvalFlag == 0
-                XCOLpts = IIstruct.XCOLpts; % = [1:IIstruct.Nc] - ImageJ as calculated in XCPS_read_data.TTsput_read
-                YROWpts = IIstruct.YROWpts; % = [1:IIstruct.Nr] - ImageJ
+                XCOLpts = [1:Nc] - ImageJ;%IIstruct.XCOLpts; % = [1:IIstruct.Nc] - ImageJ as calculated in XCPS_read_data.TTsput_read
+                YROWpts = [1:Nr] - ImageJ;%IIstruct.YROWpts; % = [1:IIstruct.Nr] - ImageJ
                 XLabelstr = XCOLLabel;
                 YLabelstr = YROWLabel;
                 Axis_imageFlag = 'image';
@@ -28,32 +28,33 @@ classdef DisplayTTM_plot
                 xccen = 1 + (Nc - 1)/2;
                 yrcen = 1 + (Nr - 1)/2;
                 Qvector_struct = XPCS_analysis.calculate_qval(xccen - ImageJ,yrcen - ImageJ,[1:Nc] - ImageJ,[1:Nr] - ImageJ,sim_flag);
-                XCOLpts = Qvector_struct.del;
-                YROWpts = Qvector_struct.nu;
-                XLabelstr = '\Delta q\_del (1/Å)';
-                YLabelstr = '\Delta q\_nu (1/Å)';
+                XCOLpts = Qvector_struct.nu;
+                YROWpts = Qvector_struct.del;
+                XLabelstr = '\Delta q\_nu (1/Å)';
+                YLabelstr = '\Delta q\_del (1/Å)';
                 Axis_imageFlag = 'square';
             end
             
-           
+            
             
             if ~isempty(AXISdet)
                 Axislim_vect = AXISdet;
             else
-                 Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
-                     min(YROWpts) max(YROWpts)];
+                Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
+                    min(YROWpts) max(YROWpts)];
             end
-          
+            
             figh = figure(fig_num);clf;
             %HSstruct.HS = pcolor(XCOLpts,YROWpts,log10(mean(IInormb,3)));
-            HSstruct.HS = pcolor(XCOLpts,YROWpts,log10(IInormb(:,:,round(size(IInormb,3)/2))));
+            HSstruct.HS = pcolor(XCOLpts,YROWpts,II);
+            %HSstruct.HS = pcolor(XCOLpts,YROWpts,log10(IInormb(:,:,round(size(IInormb,3)/2))));
             
             axis image;
-                        
+            
             %HSstruct.HS = pcolor(XCOLpts,YROWpts,(IInormb(:,:,SINGLE+ImageJ)));
-                        
+            
             Titlestr = char(IIstruct.TITLEstuct.TITLEstr1,INFOstr);
-            Namestr = [Namefig int2str(SINGLE) IIstruct.TITLEstuct.TITLEstr2];           
+            Namestr = [Namefig int2str(SINGLE) IIstruct.TITLEstuct.TITLEstr2];
             Shading_mode = 'interp';
             Colorvector = CLIM;
             Colorbarflag = 1;
@@ -64,8 +65,8 @@ classdef DisplayTTM_plot
             
         end
         
-        function [HSstruct] = display_IInormb_with_rois(Singlescan_struct,ROIS_struct,IInormb,Namefig,fig_num,ImageJ,SINGLE,XCOL,YROW,AXISdet,INFOstr,CLIM)
-           
+        function [HSstruct] = display_II_with_rois(Singlescan_struct,II,Namefig,fig_num,ImageJ,SINGLE,XCOL,YROW,AXISdet,INFOstr,CLIM)
+            
             
             % Read variables to plot
             XCOLpts = Singlescan_struct.IIstruct.XCOLpts;
@@ -74,13 +75,13 @@ classdef DisplayTTM_plot
             YLabelstr = YROW;
             
             
-            ROIS = ROIS_struct.ROIS;
+            ROIS = Singlescan_struct.ROIS_struct.ROIS;
             
             if ~isempty(AXISdet)
                 Axislim_vect = AXISdet;
             else
-                 Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
-                     min(YROWpts) max(YROWpts)];
+                Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
+                    min(YROWpts) max(YROWpts)];
             end
             
             figh = figure(fig_num);
@@ -88,12 +89,12 @@ classdef DisplayTTM_plot
             
             sub1 = subplot(211);
             
-            HSstruct.HS = pcolor(XCOLpts,YROWpts,log10(mean(IInormb,3)));
+            HSstruct.HS = pcolor(XCOLpts,YROWpts,log10(mean(II,3)));
             [HSstruct.HROI,HSstruct.COLORORDER] = showrois(ROIS,figh,3.0);
             
-                        
+            
             Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,INFOstr);
-            Namestr = [Namefig int2str(SINGLE) Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];           
+            Namestr = [Namefig int2str(SINGLE) Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];
             Shading_mode = 'interp';
             Colorvector = CLIM;
             Colorbarflag = 1;
@@ -123,7 +124,7 @@ classdef DisplayTTM_plot
         end
         
         function [HSstruct] = show_rois_only(Read_Singlescan_struct,Singlescan_struct,fig_num,XCOLlabel,YROWlabel,AXISdet)
-           
+            
             % Read variables to plot:
             ROIS = Singlescan_struct.ROIS_struct.ROIS;
             HROI = Singlescan_struct.HS_struct.HROI;
@@ -158,21 +159,21 @@ classdef DisplayTTM_plot
             Colorvector = [];
             Colorbarflag = 0;
             Axis_imageFlag = 'image';
-
+            
             DisplayFunctions_XPCS.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag, Axis_imageFlag);
             
         end
-                      
-        function [HS_sumimag_struct] =  make_summed_images(Singlescan_struct,ROIS_struct,SoXFLAG,SoYFLAG,LOGFLAG,fig_num,ImageJ,XCOLlabel,YROWlabel,AXISdet)            
+        
+        function [HS_sumimag_struct] =  make_summed_images(Singlescan_struct,ROIS_struct,tmin_max,SoXFLAG,SoYFLAG,LOGFLAG,fig_num,ImageJ,XCOLlabel,YROWlabel,AXISdet)
             
             
             % Read variables to plot:
-            IInormb = Singlescan_struct.IIstruct.IInormb;
+            II = Singlescan_struct.IIstruct.II;
             ROIS = ROIS_struct.ROIS;
             timeX = Singlescan_struct.IIstruct.timeX;
-            lastframes = Singlescan_struct.IIstruct.lastframes;
+            %lastframes = Singlescan_struct.IIstruct.lastframes;
             
-            [SoY,SoX] = slicesumrois(IInormb,ROIS,ImageJ);
+            [SoY,SoX] = slicesumrois(II,ROIS,ImageJ);
             
             %	Note - This does not 'normalize' the slices to the number of pixels summed
             %			However, after using function, use SoY.image{i}./SoY.norm{i}
@@ -181,7 +182,7 @@ classdef DisplayTTM_plot
             figure(fig_num);
             clf;
             Numsubplots =  length(ROIS(:,1));
-             
+            
             for ii=1:length(ROIS(:,1))
                 
                 if SoXFLAG
@@ -203,10 +204,11 @@ classdef DisplayTTM_plot
                 end
                 
                 sub1 = subplot(ceil(sqrt(Numsubplots)),ceil(sqrt(Numsubplots)),ii);
-               
+                
                 
                 HS_sumimag_struct = pcolor(timeX,nd,Imagetoplot);
-                makeyline(timeX(lastframes));
+                makeyline(tmin_max(1),'w');
+                makeyline(tmin_max(2),'w');
                 
                 Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1(size(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,1),:),[Singlescan_struct.IIstruct.DOCUInt, ' summed over ' Title_spec ' in ROI #' int2str(ii)]);
                 XLabelstr = 'Time (s)';
@@ -223,19 +225,19 @@ classdef DisplayTTM_plot
                     Axislim_vect = [min(timeX) max(timeX) min(nd) max(nd)];
                 end
                 
-                DisplayFunctions_XPCS.display_style(sub1,'subplot',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag,Axis_imageFlag);                               
+                DisplayFunctions_XPCS.display_style(sub1,'subplot',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag,Axis_imageFlag);
             end
         end
         
         function [HS_sumpoints_struct] = display_sumpoints_1D(Read_Singlescan_struct,Single_scan,SoXFLAG,SoYFLAG,fig_num,ImageJ,XCOLlabel,YROWlabel,AXISdet)
             
-          
+            
             % Read variables to plot:
-            IInormb = Read_Singlescan_struct.IIstruct.IInormb;
+            II = Read_Singlescan_struct.IIstruct.II;
             ROIS = Single_scan.ROIS_struct.ROIS;
             HROI = Single_scan.HS_struct.HROI;
             COLORORDER = Single_scan.HS_struct.COLORORDER;
-            [SoY,SoX] = slicesumrois(IInormb,ROIS,ImageJ);
+            [SoY,SoX] = slicesumrois(II,ROIS,ImageJ);
             
             if SoXFLAG
                 Imagetoplot = SoX.images;
@@ -285,67 +287,18 @@ classdef DisplayTTM_plot
             
             DisplayFunctions_XPCS.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag,Axis_imageFlag);
         end
-                 
-        function [] = sum_over_points_sets_in_SUMPOINTS(Singlescan_struct,SoXFLAG,SoYFLAG,fig_num,ImageJ,XCOLlabel,YROWlabel,AXISdet,POINTSUMS)   % sum over points sets in POINTSUMS
-                        
-            % Read variables to plot:
-            IInormb = Singlescan_struct.IIstruct.IInormb;
-            ROIS = Singlescan_struct.ROIS_struct.ROIS;
-            
-            [SoY,SoX] = slicesumrois(IInormb,ROIS,ImageJ);
-            
-            if SoXFLAG
-                Imagetoplot = SoX.images;
-                nd = SoX.ndx;
-                XLabelstr = YROWlabel; % y label depends on the direction we are displaying
-                Name_spec = ['SoX 1st ROI and Sum select points'];
-                Title_spec = 'XCOLS';
-            elseif SoYFLAG
-                Imagetoplot = SoY.images;
-                nd = SoY.ndx;
-                XLabelstr = XCOLlabel;
-                Name_spec = ['SoY 1st ROI and Sum selected points'];
-                Title_spec = 'YROWS';
-            end
-            
-            figure(fig_num);clf
-            hold on;
-            for ii=1:length(POINTSUMS(:,1))
-                Ni = [POINTSUMS(ii,1): POINTSUMS(ii,2)]+ImageJ;  %use as matlab
-                HL(ii) = semilogy(nd{1},sum(Imagetoplot{1}(:,Ni)'));
-            end
-            
-            legend(addnames2matrix('sum between [', int2str(POINTSUMS),']'))
-            
-            Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,['summed over ' Title_spec ' in 1st ROI and between selected Spec Points']);
-            YLabelstr = 'Int (arb)';
-            Namestr = [Name_spec Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];
-            Shading_mode = [''];
-            Colorvector = [];
-            Colorbarflag = 0;
-            Axis_imageFlag = 'square';
-            
-             if ~isempty(AXISdet)
-                Axislim_vect = AXISdet;
-            else
-                Axislim_vect = [ min(nd) max(nd) min(sum(Imagetoplot{1}')) max(sum(Imagetoplot{1}'))];
-            end
-            
-            DisplayFunctions_XPSC.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,Colorvector,Colorbarflag,Axis_imageFlag);
-            
-            
-        end
+        
         
         function [] = plot_summed_images(Singlescan_struct,ROIS_struct,IInormb,fig_num,ImageJ,CLIM,XCOLlabel,YROWlabel,AXISdet,INFOstr,POINTSUMS)
             
             %Read variables to plot
-             Xsteps = Singlescan_struct.IIstruct.Xsteps;
-             XCOLpts = Singlescan_struct.IIstruct.XCOLpts;
-             YROWpts = Singlescan_struct.IIstruct.YROWpts;
-             ROIS = ROIS_struct.ROIS;
+            timeX = Singlescan_struct.IIstruct.timeX;
+            XCOLpts = Singlescan_struct.IIstruct.XCOLpts;
+            YROWpts = Singlescan_struct.IIstruct.YROWpts;
+            ROIS = ROIS_struct.ROIS;
             
             if isempty(POINTSUMS)
-                POINTS=[1 length(Xsteps)]-ImageJ;
+                POINTS=[1 length(timeX)]-ImageJ;
             else
                 POINTS = POINTSUMS;
             end
@@ -359,8 +312,8 @@ classdef DisplayTTM_plot
                 pcolor(XCOLpts,YROWpts,sum(IInormb(:,:,Ni),3)./(NP));
                 showrois(ROIS,figh);
                 axis image;
-            end   
-                
+            end
+            
             Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,INFOstr);
             Namestr = ['Image summed over points/Num Points' Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];
             XLabelstr = XCOLlabel;
@@ -373,12 +326,12 @@ classdef DisplayTTM_plot
             if ~isempty(AXISdet)
                 Axislim_vect = AXISdet;
             else
-                 Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
-                     min(YROWpts) max(YROWpts)];
+                Axislim_vect = [min(XCOLpts) max(XCOLpts) ...
+                    min(YROWpts) max(YROWpts)];
             end
             
             DisplayFunctions_XPCS.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag,Axisimageflag);
-                     
+            
             
         end
         
@@ -392,21 +345,21 @@ classdef DisplayTTM_plot
                 scanflag,imname,p_image,ending,POINTSUMS] = XPCS_initialize_parameters.TTsput_read_ini();
             
             % Read variables to plot:
-            IInormb = Read_Singlescan_struct.IIstruct.IInormb;
+            II = Read_Singlescan_struct.IIstruct.II;
             ROIS = Singlescan_struct.ROIS_struct.ROIS;
             timeX = Read_Singlescan_struct.IIstruct.timeX;
-            lastframes = Read_Singlescan_struct.IIstruct.lastframes;
+            %lastframes = Read_Singlescan_struct.IIstruct.lastframes;
             COLORORDER = Singlescan_struct.HS_struct.COLORORDER;
             HROI = Singlescan_struct.HS_struct.HROI;
             
-            [sumROIS,sumROISnormed] = sumrois_wNaN(IInormb,ROIS,ImageJ);
-
+            [sumROIS,sumROISnormed] = sumrois_wNaN(II,ROIS,ImageJ);
+            
             
             figh = figure(fig_num);
-            clf;     
+            clf;
             hold on;
             for ii = 1:size(ROIS_index,2)
-                HL(ii) = plot(timeX,sumROIS(:,ROIS_index(ii))); 
+                HL(ii) = plot(timeX,sumROIS(:,ROIS_index(ii)));
                 set(HL(ii),'Color',COLORORDER(ROIS_index(ii),:),'LineWidth',2);
             end
             
@@ -426,18 +379,18 @@ classdef DisplayTTM_plot
             if ~isempty(AXISdet)
                 Axislim_vect = AXISdet;
             else
-                 Axislim_vect = [min(timeX) max(timeX) ...
+                Axislim_vect = [min(timeX) max(timeX) ...
                     0 max(max(sumROIS(:,1:length(ROIS(:,1)))))];
             end
             
             DisplayFunctions_XPCS.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,0,Colorvector,Colorbarflag,Axisimageflag);
-                    
+            
             % update structure:
             ROIS_struct.sumROIS = sumROIS;
             ROIS_struct.sumROISnormed = sumROISnormed;
             
         end
-   
+        
         function display_style(figh,flag,Titlestr,Namestr,Xlabelstr,Ylabelstr,shadingstr,Axislim_vect,flagPrettyPlot,COLORVECTOR,Colorbarflag,axisimagestr)
             
             [POSITION,PAPERPOSITION,FONTSIZE,CMAX,CLIM,~,~,...
@@ -487,7 +440,7 @@ classdef DisplayTTM_plot
             set(gca,'Xlim',Axislim_vect(1:2));
             set(gca,'Ylim',Axislim_vect(3:4));
             
-            if Colorbarflag 
+            if Colorbarflag
                 colorbar;
             end
             colormap jet;
@@ -497,6 +450,86 @@ classdef DisplayTTM_plot
             end
             
         end
+        
+        
+        function [fft_sumROIs,freq_array] = calc_fft_sumROIs(Allscans,Read_Allscans,time_index,ROI_index,fignum)
+            % this function calculates the fft of the integrated intensity
+            % in the ROIS and plots the spectrum
+            
+            time_array = [flipud(-Read_Allscans.IIstruct.timeX(time_index) );Read_Allscans.IIstruct.timeX(time_index) ];
+            
+            delta_freq = 2*pi/(time_array(end)-time_array(1));
+            
+            freq_array = [-numel(time_array)*delta_freq/2:delta_freq:-delta_freq 0:delta_freq:(numel(time_array)/2-1)*delta_freq];
+            
+            fft_sumROIs = fftshift(fft([Allscans.ROIS_struct.sum.sumROIS(time_index,ROI_index);flipud(Allscans.ROIS_struct.sum.sumROIS(time_index,ROI_index))]));
+            
+            figure(fignum);
+            clf
+            
+            subplot(121);
+            plot(Read_Allscans.IIstruct.timeX(time_index),Allscans.ROIS_struct.sum.sumROIS(time_index,ROI_index),'r','LineWidth',3.0);
+            xlabel('time (s)');
+            set(gca,'FontSize',30);
+            
+            subplot(122);
+            plot(freq_array,fft_sumROIs,'LineWidth',3.0);
+            title(['ROIS #' num2str(ROI_index)]);
+            xlabel('freq (Hz)');
+            set(gca,'FontSize',30);
+        end
+        
+         function [] = sum_over_points_sets_in_SUMPOINTS(Singlescan_struct,SoXFLAG,SoYFLAG,fig_num,ImageJ,XCOLlabel,YROWlabel,AXISdet,POINTSUMS)   % sum over points sets in POINTSUMS
+            
+            % Read variables to plot:
+            II = Singlescan_struct.IIstruct.II;
+            ROIS = Singlescan_struct.ROIS_struct.ROIS;
+            
+            [SoY,SoX] = slicesumrois(II,ROIS,ImageJ);
+            
+            if SoXFLAG
+                Imagetoplot = SoX.images;
+                nd = SoX.ndx;
+                XLabelstr = YROWlabel; % y label depends on the direction we are displaying
+                Name_spec = ['SoX 1st ROI and Sum select points'];
+                Title_spec = 'XCOLS';
+            elseif SoYFLAG
+                Imagetoplot = SoY.images;
+                nd = SoY.ndx;
+                XLabelstr = XCOLlabel;
+                Name_spec = ['SoY 1st ROI and Sum selected points'];
+                Title_spec = 'YROWS';
+            end
+            
+            figure(fig_num);clf
+            hold on;
+            for ii=1:length(POINTSUMS(:,1))
+                Ni = [POINTSUMS(ii,1): POINTSUMS(ii,2)]+ImageJ;  %use as matlab
+                HL(ii) = semilogy(nd{1},sum(Imagetoplot{1}(:,Ni)'));
+            end
+            
+            legend(addnames2matrix('sum between [', int2str(POINTSUMS),']'))
+            
+            Titlestr = char(Singlescan_struct.IIstruct.TITLEstuct.TITLEstr1,['summed over ' Title_spec ' in 1st ROI and between selected Spec Points']);
+            YLabelstr = 'Int (arb)';
+            Namestr = [Name_spec Singlescan_struct.IIstruct.TITLEstuct.TITLEstr2];
+            Shading_mode = [''];
+            Colorvector = [];
+            Colorbarflag = 0;
+            Axis_imageFlag = 'square';
+            
+            if ~isempty(AXISdet)
+                Axislim_vect = AXISdet;
+            else
+                Axislim_vect = [ min(nd) max(nd) min(sum(Imagetoplot{1}')) max(sum(Imagetoplot{1}'))];
+            end
+            
+            DisplayFunctions_XPSC.display_style(figh,'figure',Titlestr,Namestr,XLabelstr,YLabelstr,Shading_mode,Axislim_vect,Colorvector,Colorbarflag,Axis_imageFlag);
+            
+            
+        end
+       
+        
     end
-    end
+end
 
