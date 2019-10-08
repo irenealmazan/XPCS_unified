@@ -8,7 +8,7 @@ classdef XPCS_analysis
     
     methods(Static)
         
-         function [ROIS_struct] = TTsput_prepare_ROIS(iT,XCENV,YCENV,XWIDV,YWIDV,y_or_xmax)
+        function [ROIS_struct] = TTsput_prepare_ROIS(iT,XCENV,YCENV,XWIDV,YWIDV,y_or_xmax)
             
             XCEN = XCENV(iT);
             YCEN = YCENV(iT);
@@ -27,6 +27,7 @@ classdef XPCS_analysis
                 (XCEN + [-XWID XWID]) (YCEN + ymax(iT) + [-5 5])];
             %}
             
+            %%{
             ROIS_struct.ROIS = [...
                 (XCEN + [-XWID XWID]) (YCEN + [-YWID YWID])
                 
@@ -35,7 +36,17 @@ classdef XPCS_analysis
                 (XCEN - y_or_xmax(iT) + [-5 5]) (YCEN + [-YWID YWID]) %(YCEN - ymax(iT) + [-5 5])
                 
                 (XCEN  + y_or_xmax(iT) + [-5 5]) (YCEN + [-YWID YWID])]; %(YCEN + ymax(iT) + [-5 5])];
-                                   
+              %}         
+            %{
+            ROIS_struct.ROIS = [...
+                (XCEN + [-XWID XWID]) (YCEN + [-YWID YWID])
+                
+                (XCEN + [-2 2]) (YCEN + [-YWID YWID]) %(YCEN + [-2 2])
+                
+                (86 + [-5 5]) (204+ [-5 5]) %(YCEN - ymax(iT) + [-5 5])
+                
+                (XCEN  + y_or_xmax(iT) + [-5 5]) (YCEN + [-YWID YWID])]; %(YCEN + ymax(iT) + [-5 5])];
+            %}
             ROIS_struct.AXISdet = [(XCEN + [-50 50]) (YCEN + YWID) ];
             
             ROIS_struct.TTROIS = [...
@@ -53,8 +64,7 @@ classdef XPCS_analysis
             %DXHmin= round(ymax(iT)*0.75);
             %DXHmax= round(ymax(iT)*1.5);
         end
-        
-  
+          
         function Qval_struct = calculate_qval(XCEN_II,YCEN_II,Ncq_vect,Nrq_vect,sim_flag)
             
             if sim_flag
@@ -68,9 +78,7 @@ classdef XPCS_analysis
                 
             end
             
-        end
-        
-        
+        end        
         
         function [itt_range_struct] = prepare_subrange_for2corr(iT,timeX,XCENV,YCENV,XWIDV,YWIDV,tminv,tmaxv)
             % subrange for 2-time correlation function calculation
@@ -85,8 +93,7 @@ classdef XPCS_analysis
             itt_range_struct.Nts = length(itt_range_struct.ittt);
             
             
-        end
-        
+        end       
       
         function [IIbin_struct] = bin_scans_in_time(Singlescan_struct,iT,tbinV,ImageJ,POINTSUMS)
             
@@ -264,29 +271,60 @@ classdef XPCS_analysis
             CCN2_struct.TITLEstuct = IIbin_struct.TITLEstuct;
         end
         
-        function [IIbin_struct] = calc_Ibar_sgsf2D(IIbin_struct,maxpd,jjj,iii)
+        function [IIbin_struct] = calc_Ibar_sgsf2D_space(IIbin_struct,maxpd,jjj,iii,do_mean)
                      
             III =  IIbin_struct.II;
             %maxpd = 2; % determines maximum degree of smoothing polynomial
             %iii = 1;%2;%3; %5;% half-width of pixel range in columns
             %jjj = 3;%2;%3; %5;% half-width of pixel range in rows
         
-            [Ibar,filt] = Functions_sos.smooth_sg(III,maxpd,iii,jjj);%mean(III,3);
-        
+            if do_mean
+                % Smooths the time average of III
+                [Ibar,filt] = Functions_sos.smooth_sg_space_mean(III,maxpd,iii,jjj);%mean(III,3);
+            else
+                % Smooths each time frame of III
+                [Ibar,filt] = Functions_sos.smooth_sg_space(III,maxpd,iii,jjj);%mean(III,3);
+            end
+            
             IIbin_struct.Ibar = Ibar;
             IIbin_struct.filt = filt;            
             %IIbin_struct.timeXb =  IIbin_struct.timeXb(1+jjj:Ntb-jjj);
             
             nrow = size(Ibar,1);
-            ncol = size(Ibar,2);
-               
+            ncol = size(Ibar,2);               
             
             IIbin_struct.II = III(jjj+1:jjj+nrow,iii+1:iii+ncol,:);
             
             
             
-        end
-     
+        end     
+        
+        function [IIbin_struct] = calc_Ibar_sgsf2D_space_and_time(IIbin_struct,maxpd,jjj,iii)
+                     
+            III =  IIbin_struct.II;
+            Nr = size(III,1);           
+            Nc = size(III,2);
+            Ntb = size(III,3);
+            %maxpd = 2; % determines maximum degree of smoothing polynomial
+            %iii = 2; % half-width of pixel range in columns/time
+            %jjj = 2; % half-width of pixel range in rows/space
+        
+            [Ibar,filt] = Functions_sos.smooth_sg_space_and_time(III,maxpd,iii,jjj);%mean(III,3);
+        
+            
+            IIbin_struct.Ibar = Ibar;
+            IIbin_struct.filt = filt;            
+            IIbin_struct.timeX =  IIbin_struct.timeX(1+iii:Ntb-iii);
+            
+            
+            
+            IIbin_struct.II = III(jjj+1:Nr-jjj,1:Nc,1+iii:Ntb-iii);
+            IIbin_struct.Ntb = size(IIbin_struct.II,3);
+            
+            
+            
+        end     
+        
         
         function [CCN2_struct,IIbin_struct] = calc_2time_corr_sgsf2D(IIbin_struct)
                      
@@ -322,10 +360,15 @@ classdef XPCS_analysis
                     CCN2_struct.CCN2(:,:,ii,jj) = dlnI(:,:,ii).*dlnI(:,:,jj);
                     CCN2_struct.CCN2(:,:,jj,ii) = CCN2_struct.CCN2(:,:,ii,jj);
                 end
+                
+                % correction of the Poisson noise on the diagonal
+                CCN2_struct.CCN2(:,:,ii,ii) = CCN2_struct.CCN2(:,:,ii,ii)- 1./Ibar(:,:,ii);
+                
             end            
             CCN2_struct.TITLEstuct = IIbin_struct.TITLEstuct;
         end
         
+       
         function [CCN2avg_struct,qvector_struct] = from_CCN2V_to_CCN2avg(Single_scan_struct,iT,hwttr_allT,hwttc_allT,wrq_allT,wcq_allT,offsetcc_allT,offsetrc_allT,sim_flag)
             
             hwttr = hwttr_allT(iT);
@@ -344,6 +387,8 @@ classdef XPCS_analysis
             ittrcen = 1 + (Nrs - 1)/2; % index of row center        
 
             CCN2V = Single_scan_struct.CCN2_struct.CCN2;
+            III_avg = zeros(size(Single_scan_struct.IIbin_struct.II));
+            
             
             Ncq = 2*wcq + 1;
             Nrq = 2*wrq + 1;
@@ -357,9 +402,15 @@ classdef XPCS_analysis
                     ittr = round(ittrcen + offttr + [-hwttr:hwttr]);
                     
                     Qval_struct = XPCS_analysis.calculate_qval(ittccen,ittrcen,ittccen + offttc,ittrcen + offttr,sim_flag);
-
-                   
-                    CCN2avg_struct.scancq(icq).scanrq(irq).CCN2avg = squeeze(mean(mean(CCN2V(ittr,ittc,:,:),1),2));
+                    
+                   % correction of the Poisson noise on the diagonal
+                   III_avg = squeeze(mean(mean(Single_scan_struct.IIbin_struct.II(ittr,ittc,:),1),2));
+                   CCN2avg = squeeze(mean(mean(CCN2V(ittr,ittc,:,:),1),2));
+%                    for tt = 1:Nts
+%                       CCN2avg(tt,tt) = CCN2avg(tt,tt) - 1./III_avg(tt); 
+%                    end
+%                    
+                    CCN2avg_struct.scancq(icq).scanrq(irq).CCN2avg = CCN2avg ;%squeeze(mean(mean(CCN2V(ittr,ittc,:,:),1),2));
                     CCN2avg_struct.scancq(icq).scanrq(irq).timex = Single_scan_struct.IIbin_struct.timeX;
                     CCN2avg_struct.scancq(icq).scanrq(irq).TITLEstr2V = Single_scan_struct.IIbin_struct.TITLEstuct.TITLEstr2;
                     CCN2avg_struct.scancq(icq).scanrq(irq).nu = Qval_struct.nu;
@@ -464,8 +515,7 @@ classdef XPCS_analysis
             CCN2avg_struct.mask = mask_struct;
             
             qvector_struct = CCN2avg_struct.qvector;
-        end
-       
+        end       
         
         function [CCN2S_struct] = from_CCN2avg_to_CCN2S(CCN2avg_struct)
             % This function builds the CCN_structure where we store the
@@ -578,8 +628,10 @@ classdef XPCS_analysis
                     switch flag_row_or_col
                         case 'row'
                             CCN2S_struct.scancq(ii_indexq).scanrq(iq).CCNdtV_fit =  fitres;
+                             CCN2S_struct.scancq(ii_indexq).scanrq(iq).CCNdtV_fit.fitfunc_str = fitfunc_str;
                         case 'col'
                             CCN2S_struct.scancq(iq).scanrq(ii_indexq).CCNdtV_fit =  fitres;
+                            CCN2S_struct.scancq(iq).scanrq(ii_indexq).CCNdtV_fit.fitfunc_str = fitfunc_str;
                         otherwise
                             disp('please select rows or cols')
                             return;
@@ -593,6 +645,73 @@ classdef XPCS_analysis
             
             
         end
+       
+        function [CCN2S_struct] = fit_CCN2S_with_leasqr_globalfit(CCN2S_struct,iT,pin_iiT,dp_iiT,fitfunc_str,fit_range,qtolook,indexq,flag_row_or_col,fig_plot_fit_results)
+            
+            figure(fig_plot_fit_results);
+            clf;
+
+            qvector = zeros(numel(qtolook),1); % the qvector to calculate the contrast as a function of q
+            
+            counter_q = 1;
+            
+            for iq = qtolook
+                
+                for ii_indexq = indexq
+                    
+                    switch flag_row_or_col
+                        
+                        case 'row'
+                            CCN2S_struct_singlescan(counter_q) = CCN2S_struct.scancq(ii_indexq).scanrq(iq);
+                             qvector(counter_q) =  CCN2S_struct_singlescan(counter_q).del;
+                            
+                        case 'col'
+                            CCN2S_struct_singlescan(counter_q) = CCN2S_struct.scancq(iq).scanrq(ii_indexq);
+                            qvector(counter_q) =  CCN2S_struct_singlescan(counter_q).nu;
+                        otherwise
+                            disp('please select rows or cols')
+                            return;
+                    end
+                    
+                end
+                counter_q = counter_q + 1;
+            end
+            
+            [pin_array] = FittingFunctions.prepare_coefs_forglobalfit(pin_iiT,iT,qvector);%pin_iiT(iT,:);            
+            dp =  dp_iiT(iT,:);
+            w = ones(length(fit_range),1);
+            
+            %[ fitres] = FittingFunctions.fit_2time_corr_with_leasqr(CCN2S_struct_singlescan,fitfunc_str,fit_range,pin,dp, w);
+            [ fitres] = FittingFunctions.fit_2time_corr_with_leasqr_globalfit(CCN2S_struct_singlescan,fitfunc_str,fit_range,pin_array,dp, w);
+            
+            %                     CCN2Sfit_struct(iT).TITLEstruct = CCN2S_struct(iT).TITLEstruct;
+            %
+            counter_q = 1;
+            for iq = qtolook
+                
+                for ii_indexq = indexq
+                    
+                    switch flag_row_or_col
+                        case 'row'
+                            CCN2S_struct.scancq(ii_indexq).scanrq(iq).CCNdtV_fit =  fitres(counter_q);
+                            CCN2S_struct.scancq(ii_indexq).scanrq(iq).CCNdtV_fit.fitfunc_str = fitfunc_str;
+                        case 'col'
+                            CCN2S_struct.scancq(iq).scanrq(ii_indexq).CCNdtV_fit =  fitres(counter_q);
+                            CCN2S_struct.scancq(iq).scanrq(ii_indexq).CCNdtV_fit.fitfunc_str = fitfunc_str;
+                        otherwise
+                            disp('please select rows or cols')
+                            return;
+                    end
+                    counter_q = counter_q + 1;
+                end
+                
+                
+            end
+            
+            
+            
+        end
+       
         
         function [pout_struct] = fit_tau(pout_struct,fitfunc_str)
                       

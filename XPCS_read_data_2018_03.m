@@ -22,11 +22,11 @@ classdef XPCS_read_data_2018_03
             specfilename = specfilenameM(iT,:);
             SCNstr = SCNstrM(iT,:);
             
-            STR = XPCS_read_data.read_paths_prepare_STR(scanflag,imname,p_image,ending);
+            STR = XPCS_read_data_2018_03.read_paths_prepare_STR(scanflag,imname,p_image,ending);
             
             % read data and calculate the normalization
             index_SCN = 1; % if multiple SCNs, write array
-            [II_orig,sdata,timestampX,TITLEstuct] = XPCS_read_data.read_data_MPX3(specfilename,STR,SCNstr,index_SCN,DOCU0,DOCUscan);
+            [II_orig,sdata,timestampX,TITLEstuct] = XPCS_read_data_2018_03.read_data_MPX3(specfilename,STR,SCNstr,index_SCN,DOCU0,DOCUscan);
                                     
             
             for jjj = 1:size(II_orig,3)
@@ -34,20 +34,32 @@ classdef XPCS_read_data_2018_03
                II(:,:,jjj) = II_transp;
             end
             
-            [Norm] = XPCS_read_data.calc_Norm(sdata);
+            badpixels = [206 84;206 85;206 86;206 87;206 88;206 89;206 90;206 91];
+            
+            
+            for ll =1:size(badpixels,1)
+                II(badpixels(ll,1),badpixels(ll,2),:) = II(badpixels(ll,1)+1,badpixels(ll,2),:);
+            end
+        
+            
+            [Norm] = XPCS_read_data_2018_03.calc_Norm(sdata);
             
             % read time
             timestampX_flag = 0;   % timestamp flag from tif is not great, keep use spec
             lastframes_ini = [];
-            [timeX,timestampX,lastframes, Xsteps,Xamount,SCNXLABEL] = XPCS_read_data.calc_TimeX(sdata,timestampX,timestampX_flag,lastframes_ini,Xstepcol,ImageJ);
+            [timeX,timestampX,lastframes, Xsteps,Xamount,SCNXLABEL] = XPCS_read_data_2018_03.calc_TimeX(sdata,timestampX,timestampX_flag,lastframes_ini,Xstepcol,ImageJ);
             
             % correct data: normalization,background and flat field corrections
             BKG_FF_Flag = 0;
             imnormnan = [];
-            [IInormb] = XPCS_read_data.from_II_to_IInorm(II,Norm,BKG,BKG_FF_Flag,ImageJ,imnormnan);
+            [IInormb] = XPCS_read_data_2018_03.from_II_to_IInorm(II,Norm,BKG,BKG_FF_Flag,ImageJ,imnormnan);
+            
+            % substitute bad pixels by 0
+            %[II_new]= XPCS_read_data_2018_03.find_high_counts_pixels(IInormb);
+            %II_new = IInormb;
             %%{
-            Flag_pixels = 1;
-            [ii_rows,jj_cols]= XPCS_read_data.find_high_counts_pixels(IInorm,Flag_pixels);
+            %Flag_pixels = 1;
+            %[ii_rows,jj_cols]= XPCS_read_data.find_high_counts_pixels(II,Flag_pixels);
             %}
             
             
@@ -60,9 +72,9 @@ classdef XPCS_read_data_2018_03
             %IIstruct.Xsteps = Xsteps;
             %IIstruct.Xamount = Xamount;
             IIstruct.SCNXLABEL = SCNXLABEL;
-            IIstruct.Nr = size(II,1); % detector size (rows), 195 Pixirad (nu)
-            IIstruct.Nc = size(II,2); % detector size (rows), 487 Pixirad (del)
-            IIstruct.Nt = size(II,3); % detector size (rows), 487 Pixirad (del)
+            IIstruct.Nr = size(IInormb,1); % detector size (rows), 195 Pixirad (nu)
+            IIstruct.Nc = size(IInormb,2); % detector size (rows), 487 Pixirad (del)
+            IIstruct.Nt = size(IInormb,3); % detector size (rows), 487 Pixirad (del)
             IIstruct.ROISfull = [1 IIstruct.Nc 1 IIstruct.Nr] - ImageJ;
             IIstruct.SPECpts = [1:IIstruct.Nt] - ImageJ;
             IIstruct.YROWpts = [1:IIstruct.Nr] - ImageJ;
@@ -242,19 +254,69 @@ classdef XPCS_read_data_2018_03
             
             
         end
-        
-        function [ii_rows,jj_cols]= find_high_counts_pixels(IInormb,Flag_pixels)
+            
+        function [II_new]= find_high_counts_pixels(II)
            
+           % Do a mask and eliminate bad pixels (replacing them by the median)
+                %bp = find(max(IInormb,[],3)>1500);
+                %[ii_rows,jj_cols] = ind2sub([516 516],bp);
+                
+                  mask_test = (max(II,[],3)<1500);
+                
+                for jj = 1:size(II,3)
+                   II_new(:,:,jj) = II(:,:,jj).*mask_test; 
+                end
+                
+                %{
+                II_new = zeros(size(II));
+                for jj = 1:size(II,3)
+                    %II_new(:,:,jj) = II(:,:,jj).*mask_test+mask_test2*;
+                    ccd = II(:,:,jj);
+                    
+                    shifts = [0 1;1 0;0 -1;-1 0;1 1;1 -1;-1 -1;-1 1;2 -2;2 -1;...
+                        2 0;2 1;2 2;1 2;0 2;-1 2;-2 2;-2 1;-2 0;-2 -1;-2 -2;...
+                        -1 -2;0 -2;1 -2;2 -2];
+                    
+                    ccd1 = zeros(size(ccd,1),size(ccd,2),size(shifts,1));
+                    ccd1(:,:,1) = ccd;
+                    
+                    for kk = 2:size(ccd1,3)
+                        ccd1(:,:,kk) = circshift(ccd,shifts(kk,:));
+                    end
+                    %{
+                    ccd1(:,:,2) = circshift(ccd,[0,1]);
+                    ccd1(:,:,3) = circshift(ccd,[1,0]);
+                    ccd1(:,:,4) = circshift(ccd,[0,-1]);
+                    ccd1(:,:,5) = circshift(ccd,[-1,0]);
+                    ccd1(:,:,6) = circshift(ccd,[1,1]);
+                    ccd1(:,:,7) = circshift(ccd,[1,-1]);
+                    ccd1(:,:,8) = circshift(ccd,[-1,-1]);
+                    ccd1(:,:,9) = circshift(ccd,[-1,1]);
+                    %}
+                    ccd2 = median(ccd1,3);
+                    ccdmask = ccd>ccd2+50;
+                    ccd = ccd.*(1-ccdmask)+ccd2.*ccdmask;
+                    
+                    II_new(:,:,jj) = ccd;
+                end
+                %}
+            
+            %{
             if Flag_pixels == 0
                 % Pixels with high counts where i is y (row), j is x (col)
                 ii_rows = [251 256 261 261 261 261 261 261 261 261 256 327 261 261 261 261 261 261 261 261 256 261 261 261 261 235 290 261 348 261 277 285 295 298 372 378 388 409 420 428 457 464 494 513 250 252 262 268 287 305 306 308 310 311 312 313 315 316 317 325 326 328 330 331 332 343 358 367 406 325 330 256 329 320 335 256 309 261 256 261 256 256 256 411   3 256 261 419 307 256 261   3   8 256 516 511];
                 jj_cols = [  7  31  33  42  47  55  62  64  71  76  88  94 108 118 136 137 140 141 148 152 155 159 183 184 223 233 238 240 254 256 256 256 256 256 256 256 256 256 256 256 256 256 256 256 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 261 262 262 263 263 264 264 270 270 278 280 315 316 355 358 359 393 391 395 398 401 424 424 435 446 499 502 505];
             else
-                % Can find these by e.g.
-                bp = find(max(IInormb,[],3)>1500);
-                [ii_rows,jj_cols] = ind2sub([516 516],bp);
+                % Do a mask and eliminate bad pixels (replacing them by 0)
+                %bp = find(max(IInormb,[],3)>1500);
+                %[ii_rows,jj_cols] = ind2sub([516 516],bp);
+                mask_test = (max(II,[],3)<1500);
+                
+                for jj = 1:size(II,3)
+                   II_new(:,:,jj) = II(:,:,jj).*mask_test; 
+                end
             end
-            
+            %}
         end
         
         function Nfluct = find_pixel_high_fluctuations(IInormb,flimsd_flag)

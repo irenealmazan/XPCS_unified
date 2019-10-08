@@ -51,7 +51,7 @@ classdef DisplayFunctions_XPCS
                     end
                     
                     
-                    HL = line(([Xl Xh Xh Xl Xl]'),([Yl Yl Yh Yh Yl]'),'LineWidth',.5,'Color','k');
+                    HL = line(([Xl Xh Xh Xl Xl]'),([Yl Yl Yh Yh Yl]'),'LineWidth',.5,'Color','w');
                     
                 end
                 
@@ -112,9 +112,9 @@ classdef DisplayFunctions_XPCS
         function display_IInormbbref(IIbin_struct,boxcenterrc_struct,fig_ini,AXISdet,sim_flag)
             
            
-            IInormbb = IIbin_struct.IInormbb;%IIbin_struct.IInormbbc;
-            timeXb = IIbin_struct.timeXb;
-            IInormbb_ref = IIbin_struct.IInormbb_ref;
+            IInormbb = IIbin_struct.II;%IIbin_struct.IInormbbc;
+            timeXb = IIbin_struct.timeX;
+            IInormbb_ref = IIbin_struct.Ibar;
             
             if isfield(IIbin_struct,'N_degree')
                 Ndeg = IIbin_struct.N_degree;
@@ -150,7 +150,8 @@ classdef DisplayFunctions_XPCS
                     % calculate corresponding qvalues            
                     Qval_struct = XPCS_analysis.calculate_qval(xccen,yrcen,ics,irs,sim_flag);
 
-                    legend('IInormbb(ics,irs,:)',['Fit IInormbb to poly N = ' num2str(Ndeg)],'mean(IInormbb,3)');
+                    %legend('IInormbb(ics,irs,:)',['Fit IInormbb to poly N = ' num2str(Ndeg)],'mean(IInormbb,3)');
+                    legend('IInormbb(ics,irs,:)',['Smoothened Ibar '],'mean(IInormbb,3)');
                     
                     counter_pixel = counter_pixel  + 1;
                     
@@ -485,10 +486,11 @@ classdef DisplayFunctions_XPCS
                             
                             if isfield(CCfunc(kk).scancq(indexq).scanrq(iq),'CCNdtV_fit')
                                 PLOTFITFLAG = 1;
-                                xfit  = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.x;
-                                fitfunc = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.fitfunc;
-                                plegend = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.plegend;
+                                xfit  = CCfunc(kk).scancq(indexq).scanrq(iq).time_1D;%CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.x;
+                                fitfuncstr = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.fitfunc_str;
                                 pout = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.pout;
+                                fitfunc = feval(fitfuncstr,xfit,pout);%                                
+                                plegend = CCfunc(kk).scancq(indexq).scanrq(iq).CCNdtV_fit.plegend;
                             else
 
                                 PLOTFITFLAG = 0;
@@ -502,10 +504,11 @@ classdef DisplayFunctions_XPCS
                             
                               if isfield(CCfunc(kk).scancq(iq).scanrq(indexq),'CCNdtV_fit')
                                 PLOTFITFLAG = 1;
-                                xfit  = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.x;
-                                fitfunc = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.fitfunc;
-                                plegend = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.plegend;
+                                xfit  = CCfunc(kk).scancq(iq).scanrq(indexq).time_1D;%CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.x;
+                                fitfuncstr = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.fitfunc_str;
                                 pout = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.pout;
+                                fitfunc = feval(fitfuncstr,xfit,pout);%eval(,xfit,CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.pout);%CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.fitfunc;
+                                plegend = CCfunc(kk).scancq(iq).scanrq(indexq).CCNdtV_fit.plegend;
                              else
                                 PLOTFITFLAG = 0;
                              end

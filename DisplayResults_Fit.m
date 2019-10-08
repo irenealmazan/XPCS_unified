@@ -8,7 +8,7 @@ classdef DisplayResults_Fit
     methods(Static)
         
         
-        function [fitres_CCN2S] = display_fit_result(CCN2S_struct,indexq,flag_row_or_col,ppvector,figh)
+        function [fitres_CCN2S] = display_fit_result(CCN2S_struct,indexq,flag_row_or_col,ppvector,figh,color_plot)
             
             switch flag_row_or_col
                 
@@ -56,7 +56,7 @@ classdef DisplayResults_Fit
                 
                 %h = subplot(1,numel(CCNdtV_fit.pout),pp);
                 fighandle = figure(figh+pp);
-                errorbar(fitres_CCN2S.qvector,fitres_CCN2S.pout(pp).val,fitres_CCN2S.sigma(pp).val,'ob');
+                errorbar(fitres_CCN2S.qvector,fitres_CCN2S.pout(pp).val,fitres_CCN2S.sigma(pp).val,color_plot);
                 drawnow;
                 
                 Namestr =  [CCN2S_struct.TITLEstruct.TITLEstr2];
@@ -77,9 +77,9 @@ classdef DisplayResults_Fit
                         
                         switch pp
                             case 3
-                                Axislim_vect =  [-5e-4 5e-4 0 2.5e3];%[-60 60 0 5e8];%
+                                Axislim_vect =  [-1.5e-3 1.5e-3 0 2.5e3];%[-60 60 0 5e8];%
                             otherwise
-                                Axislim_vect =  [-5e-4 5e-4  -abs(min(fitres_CCN2S.pout(pp).val))-1e-4 abs(max(fitres_CCN2S.pout(pp).val))+1e-4];%[-60 60 0 5e8];%
+                                Axislim_vect =  [-1.5e-3 1.5e-3  -abs(min(fitres_CCN2S.pout(pp).val))-1e-4 abs(max(fitres_CCN2S.pout(pp).val))+1e-4];%[-60 60 0 5e8];%
                         end
                         
                         
@@ -141,10 +141,17 @@ classdef DisplayResults_Fit
                             Axislim_vect = [1e-5 1e-3 1 1e4];%[1 64 1e-3 1];%[1 64 1 5e8];%
                             XLabelstr = 'qvector\_del in 1/A';
                         case 'col'
-                            qvector(iq) = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).nu;
-                            pout  = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.pout(pp_index);
-                            sigp  = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.sigp(pp_index);
-                            ptitle = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.plegend(pp_index).ptitle;
+%                             qvector(iq) = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).nu;
+%                             pout  = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.pout(pp_index);
+%                             sigp  = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.sigp(pp_index);
+%                             ptitle = Allscans(iT).CCN2S_struct.scancq(iq).scanrq(indexq).CCNdtV_fit.plegend(pp_index).ptitle;
+%                             Axislim_vect = [3e-5 3e-2 1 1e4];%[1 64 1e-3 1];%[1 64 1 5e8];%
+%                             XLabelstr = 'qvector\_nu in 1/A';
+
+                            qvector(iq) = Allscans(iT).CCN2S_struct_gfit.scancq(iq).scanrq(indexq).nu;
+                            pout  = Allscans(iT).CCN2S_struct_gfit.scancq(iq).scanrq(indexq).CCNdtV_fit.pout(pp_index);
+                            sigp  = Allscans(iT).CCN2S_struct_gfit.scancq(iq).scanrq(indexq).CCNdtV_fit.sigp(pp_index);
+                            ptitle = Allscans(iT).CCN2S_struct_gfit.scancq(iq).scanrq(indexq).CCNdtV_fit.plegend(pp_index).ptitle;
                             Axislim_vect = [3e-5 3e-2 1 1e4];%[1 64 1e-3 1];%[1 64 1 5e8];%
                             XLabelstr = 'qvector\_nu in 1/A';
                     end
